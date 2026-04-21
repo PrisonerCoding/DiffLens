@@ -3,6 +3,7 @@ import { useRef, useEffect } from 'react'
 import { SearchPanel, useSearchPanel } from './SearchPanel'
 import type { FileContent } from '../types'
 import type { CompareOptions } from '../hooks/useCompareOptions'
+import type { Bookmark } from '../hooks/useBookmarks'
 
 interface DiffViewerProps {
   leftFile: FileContent | null
@@ -14,6 +15,8 @@ interface DiffViewerProps {
   showInlineDiff?: boolean
   wordWrap?: 'on' | 'off'
   compareOptions?: CompareOptions
+  bookmarks?: Bookmark[]
+  onToggleBookmark?: (lineNumber: number, side: 'left' | 'right') => void
 }
 
 export function DiffViewer({
@@ -26,9 +29,12 @@ export function DiffViewer({
   showInlineDiff = true,
   wordWrap = 'off',
   compareOptions,
+  bookmarks = [],
+  onToggleBookmark,
 }: DiffViewerProps) {
   const editorRef = useRef<any>(null)
   const inlineDiffEnabledRef = useRef(showInlineDiff)
+  const bookmarkDecorationsRef = useRef<string[]>([])
 
   const {
     leftSearchOpen,
@@ -40,6 +46,43 @@ export function DiffViewer({
   } = useSearchPanel(editorRef)
 
   inlineDiffEnabledRef.current = showInlineDiff
+
+  // Update bookmark decorations
+  useEffect(() => {
+    if (!editorRef.current) return
+
+    const editor = editorRef.current
+    const originalEditor = editor.getOriginalEditor()
+    const modifiedEditor = editor.getModifiedEditor()
+
+    const leftBookmarks = bookmarks.filter(b => b.side === 'left')
+    const rightBookmarks = bookmarks.filter(b => b.side === 'right')
+
+    const leftDecorations = leftBookmarks.map(b => ({
+      range: { startLineNumber: b.lineNumber, startColumn: 1, endLineNumber: b.lineNumber, endColumn: 1 },
+      options: {
+        isWholeLine: true,
+        glyphMarginClassName: 'bookmark-glyph',
+        glyphMarginHoverMessage: { value: `📌 Bookmark: Line ${b.lineNumber}` },
+        className: 'bookmark-line-highlight',
+      },
+    }))
+
+    const rightDecorations = rightBookmarks.map(b => ({
+      range: { startLineNumber: b.lineNumber, startColumn: 1, endLineNumber: b.lineNumber, endColumn: 1 },
+      options: {
+        isWholeLine: true,
+        glyphMarginClassName: 'bookmark-glyph',
+        glyphMarginHoverMessage: { value: `📌 Bookmark: Line ${b.lineNumber}` },
+        className: 'bookmark-line-highlight',
+      },
+    }))
+
+    const leftOldDecorations = originalEditor.deltaDecorations(bookmarkDecorationsRef.current[0] || [], leftDecorations)
+    const rightOldDecorations = modifiedEditor.deltaDecorations(bookmarkDecorationsRef.current[1] || [], rightDecorations)
+
+    bookmarkDecorationsRef.current = [leftOldDecorations, rightOldDecorations]
+  }, [bookmarks])
 
   const handleEditorMount = (editor: any) => {
     editorRef.current = editor
@@ -60,6 +103,21 @@ export function DiffViewer({
       }
     })
 
+    // Listen for glyph margin clicks (line number area) for bookmarks
+    originalEditor.onMouseDown((e: any) => {
+      if (e.target.type === 2 && e.target.position) { // Glyph margin click
+        const lineNumber = e.target.position.lineNumber
+        onToggleBookmark?.(lineNumber, 'left')
+      }
+    })
+
+    modifiedEditor.onMouseDown((e: any) => {
+      if (e.target.type === 2 && e.target.position) { // Glyph margin click
+        const lineNumber = e.target.position.lineNumber
+        onToggleBookmark?.(lineNumber, 'right')
+      }
+    })
+
     // Listen for search events from keyboard shortcuts
     const handleSearchEvent = (e: CustomEvent) => {
       const { side, action } = e.detail
@@ -74,6 +132,17 @@ export function DiffViewer({
     }
 
     window.addEventListener('search-action', handleSearchEvent as EventListener)
+
+    // Listen for bookmark navigation events
+    const handleGotoBookmark = (e: CustomEvent) => {
+      const { lineNumber, side } = e.detail
+      const targetEditor = side === 'left' ? originalEditor : modifiedEditor
+      targetEditor.revealLineInCenter(lineNumber)
+      targetEditor.setPosition({ lineNumber, column: 1 })
+      targetEditor.focus()
+    }
+
+    window.addEventListener('goto-bookmark', handleGotoBookmark as EventListener)
 
     // Notify parent that editor is ready
     window.dispatchEvent(new CustomEvent('diff-editor-ready', {
@@ -117,6 +186,18 @@ export function DiffViewer({
         getCurrentLine: () => {
           const modifiedEd = editor.getModifiedEditor()
           return modifiedEd.getPosition()?.lineNumber || 1
+        },
+        getLeftLineCount: () => {
+          return originalEditor.getModel()?.getLineCount() || 1
+        },
+        getRightLineCount: () => {
+          return modifiedEditor.getModel()?.getLineCount() || 1
+        },
+        getLeftCurrentLine: () => {
+          return originalEditor.getPosition()?.lineNumber || 1
+        },
+        getRightCurrentLine: () => {
+          return modifiedEditor.getPosition()?.lineNumber || 1
         },
       }
     }))
@@ -264,6 +345,10 @@ export function createDiffEditorHelper() {
   let goToLine: (lineNumber: number) => void = () => {}
   let getLineCount: () => number = () => 1
   let getCurrentLine: () => number = () => 1
+  let getLeftLineCount: () => number = () => 1
+  let getRightLineCount: () => number = () => 1
+  let getLeftCurrentLine: () => number = () => 1
+  let getRightCurrentLine: () => number = () => 1
 
   const handleReady = (e: CustomEvent) => {
     getLeftContent = e.detail.getLeftContent
@@ -276,6 +361,10 @@ export function createDiffEditorHelper() {
     if (e.detail.goToLine) goToLine = e.detail.goToLine
     if (e.detail.getLineCount) getLineCount = e.detail.getLineCount
     if (e.detail.getCurrentLine) getCurrentLine = e.detail.getCurrentLine
+    if (e.detail.getLeftLineCount) getLeftLineCount = e.detail.getLeftLineCount
+    if (e.detail.getRightLineCount) getRightLineCount = e.detail.getRightLineCount
+    if (e.detail.getLeftCurrentLine) getLeftCurrentLine = e.detail.getLeftCurrentLine
+    if (e.detail.getRightCurrentLine) getRightCurrentLine = e.detail.getRightCurrentLine
   }
 
   window.addEventListener('diff-editor-ready', handleReady as EventListener)
@@ -291,6 +380,10 @@ export function createDiffEditorHelper() {
     goToLine,
     getLineCount,
     getCurrentLine,
+    getLeftLineCount,
+    getRightLineCount,
+    getLeftCurrentLine,
+    getRightCurrentLine,
     cleanup: () => window.removeEventListener('diff-editor-ready', handleReady as EventListener),
   }
 }

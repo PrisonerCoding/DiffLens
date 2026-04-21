@@ -14,14 +14,18 @@ import { ThreeWayMerge } from './components/ThreeWayMerge'
 import { ImageDiffViewer } from './components/ImageDiffViewer'
 import { GoToLineDialog } from './components/GoToLineDialog'
 import { CompareOptionsPanel } from './components/CompareOptionsPanel'
+import { BookmarkPanel } from './components/BookmarkPanel'
+import { DiffStatsPanel } from './components/DiffStatsPanel'
 import { computeDiffStats, getLanguageFromPath } from './utils/diff'
 import { isBinaryFile } from './utils/binaryCheck'
 import { compareFolders, getFolderStats } from './utils/folderCompare'
 import { saveSession, loadSession, loadSessionFromPath, addRecentSession, type SessionData } from './utils/session'
+import { generateDiffReport, downloadReport } from './utils/exportReport'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useLayoutMode } from './hooks/useLayoutMode'
 import { useWordWrap } from './hooks/useWordWrap'
 import { useCompareOptions } from './hooks/useCompareOptions'
+import { useBookmarks } from './hooks/useBookmarks'
 import type { FileContent, CompareMode, FolderItem, CompareRule } from './types'
 import './App.css'
 
@@ -65,7 +69,10 @@ function App() {
   const { layoutMode, setLayoutMode } = useLayoutMode()
   const { wordWrap, setWordWrap } = useWordWrap()
   const { options: compareOptions, toggleOption: toggleCompareOption, resetOptions: resetCompareOptions } = useCompareOptions()
+  const { bookmarks, toggleBookmark, clearBookmarks, goToBookmark, removeBookmark, nextBookmark, prevBookmark } = useBookmarks()
   const [showCompareOptions, setShowCompareOptions] = useState(false)
+  const [showBookmarkPanel, setShowBookmarkPanel] = useState(false)
+  const [showDiffStats, setShowDiffStats] = useState(false)
 
   const diffHelperRef = useRef<ReturnType<typeof createDiffEditorHelper> | null>(null)
 
@@ -452,8 +459,42 @@ function App() {
     diffHelperRef.current?.goToLine(lineNumber)
   }
 
+  const handleNextBookmark = () => {
+    const currentLine = diffHelperRef.current?.getRightCurrentLine() || 1
+    const bookmark = nextBookmark(currentLine, 'right')
+    if (bookmark) {
+      goToBookmark(bookmark)
+    }
+  }
+
+  const handlePrevBookmark = () => {
+    const currentLine = diffHelperRef.current?.getRightCurrentLine() || 1
+    const bookmark = prevBookmark(currentLine, 'right')
+    if (bookmark) {
+      goToBookmark(bookmark)
+    }
+  }
+
   const handleNewSession = () => {
     handleRefresh()
+  }
+
+  const handleExportReport = () => {
+    if (!leftFile || !rightFile) return
+
+    const stats = computeDiffStats(leftFile.content, rightFile.content)
+    const htmlContent = generateDiffReport({
+      leftFile,
+      rightFile,
+      diffStats: stats,
+      showLineNumbers: true,
+    })
+
+    const leftName = leftFile.path.split(/[/\\]/).pop() || 'left'
+    const rightName = rightFile.path.split(/[/\\]/).pop() || 'right'
+    const fileName = `diff-report-${leftName}-vs-${rightName}.html`
+
+    downloadReport(htmlContent, fileName)
   }
 
   const handleSaveSession = async () => {
@@ -650,6 +691,14 @@ function App() {
         onWordWrapChange={setWordWrap}
         showCompareOptions={showCompareOptions}
         onToggleCompareOptions={() => setShowCompareOptions(!showCompareOptions)}
+        showBookmarkPanel={showBookmarkPanel}
+        onToggleBookmarkPanel={() => setShowBookmarkPanel(!showBookmarkPanel)}
+        bookmarkCount={bookmarks.length}
+        onPrevBookmark={handlePrevBookmark}
+        onNextBookmark={handleNextBookmark}
+        onExportReport={handleExportReport}
+        showDiffStats={showDiffStats}
+        onToggleDiffStats={() => setShowDiffStats(!showDiffStats)}
         diffCount={diffCount}
         currentDiffIndex={currentDiffIndex}
         hasFiles={hasFiles}
@@ -734,6 +783,8 @@ function App() {
           rightEditable={true}
           wordWrap={wordWrap}
           compareOptions={compareOptions}
+          bookmarks={bookmarks}
+          onToggleBookmark={toggleBookmark}
         />
       )}
 
@@ -778,6 +829,24 @@ function App() {
         onGoToLine={handleGoToLineSubmit}
         maxLines={diffHelperRef.current?.getLineCount() || 1}
         currentLine={diffHelperRef.current?.getCurrentLine() || 1}
+      />
+
+      {/* Bookmark Panel */}
+      <BookmarkPanel
+        bookmarks={bookmarks}
+        onGoToBookmark={goToBookmark}
+        onRemoveBookmark={(bookmark) => removeBookmark(bookmark.lineNumber, bookmark.side)}
+        onClearBookmarks={clearBookmarks}
+        isOpen={showBookmarkPanel}
+        onClose={() => setShowBookmarkPanel(false)}
+      />
+
+      {/* Diff Statistics Panel */}
+      <DiffStatsPanel
+        leftFile={leftFile}
+        rightFile={rightFile}
+        isOpen={showDiffStats}
+        onClose={() => setShowDiffStats(false)}
       />
 
       {/* Status bar */}

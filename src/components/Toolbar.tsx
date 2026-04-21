@@ -30,6 +30,14 @@ interface ToolbarProps {
   onWordWrapChange?: (mode: 'on' | 'off') => void
   showCompareOptions?: boolean
   onToggleCompareOptions?: () => void
+  showBookmarkPanel?: boolean
+  onToggleBookmarkPanel?: () => void
+  bookmarkCount?: number
+  onPrevBookmark?: () => void
+  onNextBookmark?: () => void
+  onExportReport?: () => void
+  showDiffStats?: boolean
+  onToggleDiffStats?: () => void
   diffCount?: number
   currentDiffIndex?: number
   hasFiles?: boolean
@@ -55,6 +63,14 @@ export function Toolbar({
   onWordWrapChange,
   showCompareOptions = false,
   onToggleCompareOptions,
+  showBookmarkPanel: _showBookmarkPanel = false,
+  onToggleBookmarkPanel,
+  bookmarkCount = 0,
+  onPrevBookmark,
+  onNextBookmark,
+  onExportReport,
+  showDiffStats: _showDiffStats = false,
+  onToggleDiffStats,
   diffCount = 0,
   currentDiffIndex = 0,
   hasFiles = false,
@@ -227,12 +243,50 @@ export function Toolbar({
         >
           <span className="nav-btn-icon">📍</span>
         </button>
+
+        {/* Bookmark Navigation */}
+        <div className="toolbar-divider small" />
+        <button
+          className="bookmark-toggle-btn"
+          onClick={onToggleBookmarkPanel}
+          title="Toggle bookmark panel"
+        >
+          <span className="bookmark-btn-icon">📌</span>
+          {bookmarkCount > 0 && (
+            <span className="bookmark-count">{bookmarkCount}</span>
+          )}
+        </button>
+        <button
+          className="bookmark-nav-btn"
+          onClick={onPrevBookmark}
+          disabled={bookmarkCount === 0}
+          title="Previous bookmark"
+        >
+          <span className="nav-btn-icon">◀</span>
+        </button>
+        <button
+          className="bookmark-nav-btn"
+          onClick={onNextBookmark}
+          disabled={bookmarkCount === 0}
+          title="Next bookmark"
+        >
+          <span className="nav-btn-icon">▶</span>
+        </button>
       </div>
 
       <div className="toolbar-divider" />
 
       {/* Actions */}
       <div className="toolbar-actions">
+        {/* Diff Stats Toggle */}
+        <button
+          className="stats-btn"
+          onClick={onToggleDiffStats}
+          title="Show detailed statistics"
+        >
+          <span className="stats-btn-icon">📊</span>
+        </button>
+
         {/* Compare Options Toggle */}
         <button
           className={`options-btn ${showCompareOptions ? 'active' : ''}`}
@@ -266,6 +320,18 @@ export function Toolbar({
           <span className="action-btn-icon">🔄</span>
           Refresh
         </button>
+
+        {/* Export Report */}
+        <button
+          className="action-btn export-btn"
+          onClick={onExportReport}
+          disabled={!hasFiles}
+          title="Export diff report as HTML"
+        >
+          <span className="action-btn-icon">📄</span>
+          Export
+        </button>
+
         <button className="action-btn" onClick={onSwap} title="Swap Sides (Ctrl+Shift+S)">
           <span className="action-btn-icon">⇄</span>
           Swap

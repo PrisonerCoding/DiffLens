@@ -3613,6 +3613,587 @@ body {
   font-weight: 600;
 }
 
+/* ============ BOOKMARK STYLES ============ */
+.bookmark-glyph {
+  background: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e94560"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>') center center no-repeat;
+  background-size: 16px 16px;
+  width: 16px;
+  height: 100%;
+  cursor: pointer;
+}
+
+.bookmark-line-highlight {
+  background: rgba(233, 69, 96, 0.05);
+}
+
+/* Bookmark Panel */
+.bookmark-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.bookmark-panel {
+  width: 400px;
+  max-height: 500px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.bookmark-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bookmark-panel-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.bookmark-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.bookmark-clear-btn {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+}
+
+.bookmark-clear-btn:hover:not(:disabled) {
+  border-color: var(--diff-removed-line);
+  color: var(--diff-removed-line);
+}
+
+.bookmark-clear-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bookmark-close-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.bookmark-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.bookmark-panel-content {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.bookmark-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.bookmark-empty-icon {
+  font-size: 32px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.bookmark-empty-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.bookmark-empty-hint {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.bookmark-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bookmark-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bookmark-item:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--accent-primary);
+}
+
+.bookmark-side-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+}
+
+.bookmark-side-badge.left {
+  background: linear-gradient(135deg, #f85149 0%, #c93632 100%);
+}
+
+.bookmark-side-badge.right {
+  background: linear-gradient(135deg, #2ea043 0%, #238636 100%);
+}
+
+.bookmark-line-number {
+  font-size: 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.bookmark-label {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookmark-remove-btn {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.5;
+}
+
+.bookmark-remove-btn:hover {
+  opacity: 1;
+  color: var(--diff-removed-line);
+}
+
+/* Bookmark Navigation Buttons */
+.bookmark-nav-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookmark-nav-btn:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.bookmark-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bookmark-toggle-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bookmark-toggle-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.bookmark-toggle-btn.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+}
+
+.bookmark-btn-icon {
+  font-size: 14px;
+}
+
+.bookmark-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 14px;
+  height: 14px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar-divider.small {
+  width: 8px;
+  height: 1px;
+  margin: 0 4px;
+}
+
+/* Export Button */
+.action-btn.export-btn {
+  background: var(--accent-secondary);
+  color: white;
+}
+
+.action-btn.export-btn:hover:not(:disabled) {
+  background: var(--accent-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(233, 69, 96, 0.3);
+}
+
+/* ============ DIFF STATS PANEL ============ */
+.diff-stats-panel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.diff-stats-panel {
+  width: 500px;
+  max-height: 600px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.diff-stats-header {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.diff-stats-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.diff-stats-close-btn {
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  margin-left: auto;
+}
+
+.diff-stats-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.diff-stats-content {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 500px;
+}
+
+.diff-stats-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.diff-stats-empty-icon {
+  font-size: 32px;
+  opacity: 0.5;
+  margin-bottom: 8px;
+}
+
+.diff-stats-empty-text {
+  font-size: 14px;
+}
+
+.stats-section {
+  margin-bottom: 24px;
+}
+
+.stats-section:last-child {
+  margin-bottom: 0;
+}
+
+.stats-section-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-card.added {
+  border-color: var(--diff-added-line);
+  background: var(--diff-added-bg);
+}
+
+.stat-card.removed {
+  border-color: var(--diff-removed-line);
+  background: var(--diff-removed-bg);
+}
+
+.stat-card.modified {
+  border-color: var(--diff-modified-line);
+  background: var(--diff-modified-bg);
+}
+
+.stat-card-icon {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stat-card.added .stat-card-icon {
+  color: var(--diff-added-line);
+}
+
+.stat-card.removed .stat-card-icon {
+  color: var(--diff-removed-line);
+}
+
+.stat-card.modified .stat-card-icon {
+  color: var(--diff-modified-line);
+}
+
+.stat-card-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.stat-card-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-card-value.positive {
+  color: var(--diff-added-line);
+}
+
+.stat-card-value.negative {
+  color: var(--diff-removed-line);
+}
+
+.stat-card-unit {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Similarity Section */
+.similarity-section {
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.similarity-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.similarity-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.similarity-fill {
+  height: 100%;
+  background: var(--accent-gradient);
+  transition: width 0.3s ease;
+}
+
+.similarity-percent {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--accent-primary);
+}
+
+.similarity-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Distribution Chart */
+.distribution-chart {
+  padding: 16px;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.distribution-bar {
+  display: flex;
+  height: 24px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.distribution-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.distribution-segment.added {
+  background: var(--diff-added-line);
+}
+
+.distribution-segment.removed {
+  background: var(--diff-removed-line);
+}
+
+.distribution-segment.modified {
+  background: var(--diff-modified-line);
+}
+
+.distribution-labels {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.distribution-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.distribution-label .label-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.distribution-label.added .label-dot {
+  background: var(--diff-added-line);
+}
+
+.distribution-label.removed .label-dot {
+  background: var(--diff-removed-line);
+}
+
+.distribution-label.modified .label-dot {
+  background: var(--diff-modified-line);
+}
+
+/* Stats Toggle Button */
+.stats-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-primary);
+}
+
+.stats-btn.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: white;
+}
+
 /* Vertical Layout */
 .App.vertical-layout {
   flex-direction: column;
